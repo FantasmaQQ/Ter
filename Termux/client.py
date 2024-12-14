@@ -11,7 +11,7 @@ def receive_messages():
     while True:
         try:
             message = client.recv(1024).decode('utf-8')
-            print(message)
+            print(Fore.CYAN + message)  # Aplique a cor ao receber a mensagem
         except:
             print(Fore.RED + "Conexão perdida...")
             client.close()
@@ -34,7 +34,7 @@ def send_file(filename):
 username = input(Fore.YELLOW + "Digite seu nome de usuário: ")
 
 # Mensagem de boas-vindas
-print(Fore.CYAN + f"Bem-vindo, {username}! Você está no chat agora.")
+print(Fore.GREEN + f"Bem-vindo, {username}! Você está no chat agora.")
 
 # Substitua pelo IP e a porta gerados pelo ngrok no PC
 server_ip = "0.tcp.sa.ngrok.io"  # IP do ngrok
