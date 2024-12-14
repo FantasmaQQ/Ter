@@ -22,7 +22,7 @@ def broadcast(message, client_socket):
                 clients.remove(client)
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server.bind(("0.0.0.0", 9999))  # Altere "9999" para outra porta se necessário
+server.bind(("0.0.0.0", 9999))  # Porta que o servidor usará
 server.listen(5)
 clients = []
 
