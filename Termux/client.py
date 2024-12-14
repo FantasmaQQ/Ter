@@ -11,13 +11,13 @@ def receive_messages():
             client.close()
             break
 
-server_ip = input("Digite o IP do servidor (ou localhost para testes locais): ")
+server_ip = input("Digite o IP do servidor: ")  # IP do servidor
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client.connect((server_ip, 9999))
+client.connect((server_ip, 9999))  # Porta deve ser a mesma do servidor
 
 threading.Thread(target=receive_messages).start()
 
-print("Conectado ao chat! Envie mensagens:")
+print("Conectado ao chat! Digite suas mensagens:")
 while True:
     message = input()
     client.send(message.encode('utf-8'))
