@@ -12,14 +12,15 @@ def receive_messages():
             client.close()
             break
 
-# Defina diretamente o IP do servidor e a porta
-server_ip = "0.tcp.sa.ngrok.io"  # IP gerado pelo ngrok
-server_port = 15437  # Porta gerada pelo ngrok
+# Substitua pelo IP e a porta gerados pelo ngrok no PC
+server_ip = "0.tcp.sa.ngrok.io"  # IP do ngrok
+server_port = 11811  # Porta do ngrok
 
 # Conectar ao servidor
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect((server_ip, server_port))
 
+# Iniciar a thread para receber mensagens
 threading.Thread(target=receive_messages).start()
 
 print("Conectado ao chat! Digite suas mensagens:")
