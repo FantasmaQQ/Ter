@@ -1,47 +1,45 @@
 import socket
 import threading
+from colorama import Fore, init
 
-# Função para lidar com cada cliente (receber e enviar mensagens)
+# Inicializa o colorama
+init(autoreset=True)
+
+# Função para lidar com o cliente
 def handle_client(client_socket, addr):
-    print(f"[NOVA CONEXÃO] {addr} conectado.")
+    print(Fore.GREEN + f"Conexão estabelecida com {addr}")
+    client_socket.send(Fore.CYAN + b"Bem-vindo ao chat! Você está agora conectado.")
+
     while True:
         try:
-            # Recebe mensagem do cliente
             message = client_socket.recv(1024).decode('utf-8')
-            print(f"[{addr}] {message}")
-            # Envia a mensagem para todos os outros clientes
-            broadcast(message, client_socket)
-        except:
-            # Se o cliente desconectar, remove ele da lista
-            print(f"[DESCONECTADO] {addr}")
-            clients.remove(client_socket)
+
+            if message.startswith("FILE:"):
+                filename = message.split(":", 1)[1]
+                with open(filename, 'wb') as file:
+                    while chunk := client_socket.recv(1024):
+                        if not chunk:
+                            break
+                        file.write(chunk)
+                print(Fore.YELLOW + f"Arquivo {filename} recebido com sucesso!")
+            else:
+                print(Fore.YELLOW + f"Mensagem de {addr}: {message}")
+        except Exception as e:
+            print(Fore.RED + f"Erro: {e}")
             client_socket.close()
             break
 
-# Função para enviar mensagens a todos os clientes conectados
-def broadcast(message, client_socket):
-    for client in clients:
-        # Não envia para o próprio cliente
-        if client != client_socket:
-            try:
-                client.send(message.encode('utf-8'))
-            except:
-                # Remove o cliente caso haja erro
-                clients.remove(client)
-
 # Configuração do servidor
+server_ip = "0.0.0.0"  # O servidor escuta em todas as interfaces de rede
+server_port = 9999  # Porta do servidor
+
+# Criação do socket
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server.bind(("0.0.0.0", 9999))  # Porta do servidor (9999)
+server.bind((server_ip, server_port))
 server.listen(5)
-print("[SERVIDOR INICIADO] Aguardando conexões...")
 
-# Lista para armazenar clientes conectados
-clients = []
+print(Fore.CYAN + f"Servidor rodando em {server_ip}:{server_port}, aguardando conexões...")
 
-# Loop principal para aceitar conexões
 while True:
-    client_socket, addr = server.accept()  # Aceita a conexão
-    clients.append(client_socket)  # Adiciona o cliente à lista
-    print(f"[CONEXÃO ESTABELECIDA] {addr}")
-    # Inicia uma nova thread para lidar com o cliente (isso permite múltiplos clientes)
+    client_socket, addr = server.accept()
     threading.Thread(target=handle_client, args=(client_socket, addr)).start()
