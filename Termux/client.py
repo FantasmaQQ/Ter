@@ -1,6 +1,7 @@
 import socket
 import threading
 
+# Função para receber mensagens do servidor
 def receive_messages():
     while True:
         try:
@@ -11,9 +12,11 @@ def receive_messages():
             client.close()
             break
 
-server_ip = input("Digite o IP do servidor: ")  # Insira o IP do servidor (ngrok)
-server_port = int(input("Digite a porta do servidor: "))  # Insira a porta do servidor (ngrok)
+# Defina diretamente o IP do servidor e a porta
+server_ip = "0.tcp.sa.ngrok.io"  # IP gerado pelo ngrok
+server_port = 15437  # Porta gerada pelo ngrok
 
+# Conectar ao servidor
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect((server_ip, server_port))
 
