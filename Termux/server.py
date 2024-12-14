@@ -5,7 +5,6 @@ def handle_client(client_socket):
     while True:
         try:
             message = client_socket.recv(1024).decode('utf-8')
-            print(f"Mensagem recebida: {message}")
             broadcast(message, client_socket)
         except:
             clients.remove(client_socket)
