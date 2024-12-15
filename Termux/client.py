@@ -1,63 +1,46 @@
 import socket
-import threading
-import os
-from colorama import Fore, init
+import pyaudio
+import wave
 
-# Inicializa o colorama
-init(autoreset=True)
-
-# Função para receber mensagens do servidor
-def receive_messages():
-    while True:
-        try:
-            message = client.recv(1024).decode('utf-8')
-            print(Fore.CYAN + message)  # Aplique a cor ao receber a mensagem
-        except:
-            print(Fore.RED + "Conexão perdida...")
-            client.close()
-            break
-
-# Função para enviar arquivos
-def send_file(filename):
+# Função para gravar áudio
+def record_audio(filename):
+    p = pyaudio.PyAudio()
+    stream = p.open(format=pyaudio.paInt16, channels=1, rate=44100, input=True, frames_per_buffer=1024)
+    frames = []
+    
+    print("Gravando... (pressione Ctrl+C para parar)")
     try:
-        client.send(f"FILE:{filename}".encode('utf-8'))
+        while True:
+            data = stream.read(1024)
+            frames.append(data)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        print("Gravação finalizada.")
+        stream.stop_stream()
+        stream.close()
+        p.terminate()
         
-        with open(filename, 'rb') as file:
-            while chunk := file.read(1024):
-                client.send(chunk)
-        
-        print(Fore.GREEN + "Arquivo enviado com sucesso!")
-    except Exception as e:
-        print(Fore.RED + f"Erro ao enviar arquivo: {e}")
+        with wave.open(filename, 'wb') as wf:
+            wf.setnchannels(1)
+            wf.setsampwidth(p.get_sample_size(pyaudio.paInt16))
+            wf.setframerate(44100)
+            wf.writeframes(b''.join(frames))
 
-# Solicitar nome de usuário
-username = input(Fore.YELLOW + "Digite seu nome de usuário: ")
+# Conecta ao servidor
+server_ip = '127.0.0.1'
+server_port = 9999
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client_socket.connect((server_ip, server_port))
 
-# Mensagem de boas-vindas
-print(Fore.GREEN + f"Bem-vindo, {username}! Você está no chat agora.")
+# Grava o áudio e envia
+filename = "audio.wav"
+record_audio(filename)
+with open(filename, 'rb') as f:
+    client_socket.send(f.read())
 
-# Substitua pelo IP e a porta gerados pelo ngrok no PC
-server_ip = "0.tcp.sa.ngrok.io"  # IP do ngrok
-server_port = 11811  # Porta do ngrok
+# Recebe a resposta do servidor
+response = client_socket.recv(1024)
+print(response.decode())
 
-# Conectar ao servidor
-client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client.connect((server_ip, server_port))
-
-# Iniciar a thread para receber mensagens
-threading.Thread(target=receive_messages).start()
-
-print(Fore.GREEN + "Conectado ao chat! Digite suas mensagens ou envie um arquivo:")
-
-while True:
-    message = input(Fore.YELLOW + f"{username}: ")
-
-    # Enviar arquivo se o comando for 'enviar arquivo'
-    if message.startswith("enviar arquivo"):
-        filename = message.split(" ", 1)[1]
-        if os.path.isfile(filename):
-            send_file(filename)
-        else:
-            print(Fore.RED + "Arquivo não encontrado.")
-    else:
-        client.send(f"{username}: {message}".encode('utf-8'))
+client_socket.close()
